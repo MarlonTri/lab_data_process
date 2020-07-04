@@ -19,7 +19,13 @@ def read_file(file_path):
     return txt_records
 
 class records_file(object):
-    """object representing an input file:records of plate_carrier, plate_carrier_extra, and necessary amount of tube_racks"""
+    """
+    object representing an input file:
+        records of:
+            1 plate_carrier,
+            1 plate_carrier_extra,
+            necessary amount of tube_racks
+    """
     def __init__(self, file_path, pool_num):
         self.pool_num = pool_num
         txt_records = read_file(file_path)
@@ -47,19 +53,23 @@ class records_file(object):
         
     def plates_wells(self, mode):
         """
-        this will iterate along all the plate positions, taking into account missing plates and pool_number
-        supported modes: 'elusion','pcr','pcr_interleave'
+        this generator will iterate along all the plate positions, taking into account missing plates and pool_number
+        supported modes:
+            'elution',
+            'pcr_quadrant',
+            'pcr_interleave'
         """
-        if mode == "elusion":
-            #assign barcodes to elusion plates
+        if mode == "elution":
+            #assign barcodes to elution plates
             for plate_bc in self.plate_carrier.barcodes:
                 if plate_bc!="":
                     for pool_itr in range(self.pool_num):
                         for number in range(1,13):
                             for letter in "abcdefgh":
                                 yield (plate_bc,pool_itr,letter+str(number))
-        elif mode == "pcr":
+        elif mode == "pcr_quadrant":
             #assign barcodes to one big barcode plate, assigning in quadrants
+            #starting in top left and rotating clockwise
             letters_lst = ["abcdefgh","ijklmnop"]
             x_plate_offsets = [0,12]
             for i in range(4):
@@ -71,7 +81,7 @@ class records_file(object):
                                 yield (self.plate_carrier.barcodes[i],pool_itr,letter+str(number))
         elif mode == "pcr_interleave":
             letters = "abcdefghijklmnop"
-            #assign barcodes to one big barcode plate, but interleaving 4 plates
+            #assign barcodes to one pcr barcode plate, but interleaving 4 plates
             for i in range(4):
                 x_off = i%2
                 for pool_itr in range(self.pool_num):
@@ -83,6 +93,10 @@ class records_file(object):
             raise Exception("Unknown type of plate mapping")
 
     def tube_rack_samples(self):
+        """
+        this generator will spit out the tube_rack samples in order that they are encountered in the file
+        it will output empty strings for the sample that have no barcodes
+        """
         for tube_rack in self.tube_racks:
             for tube_rack_bc in tube_rack.barcodes:
                 yield tube_rack_bc    
@@ -101,9 +115,9 @@ class records_file(object):
             output += f"{plate_bc},{pool_itr},{plate_pos},{sample_bc}\n"
         return output
     def save_to_file(self,output_name):
-        with open(output_name + "_elusion.txt","w") as f:
-            f.write(records.fill_wells_output("elusion"))
-        with open(output_name + "_pcr.txt","w") as f:
+        with open(output_name + "_elution.txt","w") as f:
+            f.write(records.fill_wells_output("elution"))
+        with open(output_name + "_pcr_quadrant.txt","w") as f:
             f.write(records.fill_wells_output("pcr"))
         with open(output_name + "_pcr_interleave.txt","w") as f:
             f.write(records.fill_wells_output("pcr_interleave"))
@@ -132,8 +146,6 @@ class record(object):
         else:
             info = [re.split("\W",x) for x in lines[2:-1]]
         self.barcodes = [barcode for _,_,barcode in info]
-
-
             
     def __str__(self):
         s = f"Type:\t{self.type}\n"
@@ -144,8 +156,8 @@ class record(object):
             s+=f"\t{pos}\t{barcode}\n"
         return s
         
-records = records_file("input.txt",5)
-records.save_to_file("output")
+records = records_file("test_data/input.txt",5)
+records.save_to_file("test_data/output") #no file extension needed
 
 
                                 
