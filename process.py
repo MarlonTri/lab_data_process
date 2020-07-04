@@ -75,7 +75,6 @@ class records_file(object):
                             for letter in "abcdefgh":
                                 yield (plate_bc,pool_itr,letter+str(number))
         elif mapping_mode == "pcr_quadrant":
-            print("quadrant")
             #assign barcodes to one big barcode plate, assigning in quadrants
             #starting in top left and rotating clockwise
             letters_lst = ["abcdefgh","ijklmnop"]
@@ -110,7 +109,13 @@ class records_file(object):
                 yield tube_rack_bc    
     
     def fill_wells_output(self, mapping_mode):
-        """given a type of output, will generate output mapping as csv string """
+        """
+        given a type of output, will generate output mapping as csv string
+        supported mapping_modes:
+            'elution',
+            'pcr_quadrant',
+            'pcr_interleave'
+        """
         num_plate_slots = len(list(self.plates_wells(mapping_mode)))
         num_samples = len(list(self.tube_rack_samples()))
         if num_plate_slots!= num_samples:
