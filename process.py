@@ -51,15 +51,15 @@ class records_file(object):
         if len(self.tube_racks)!=3*pool_num*num_plates:
             raise Exception(f"There are {len(self.tube_racks)} tube_rack records but there should be {pool_num*num_plates}")
         
-    def plates_wells(self, mode):
+    def plates_wells(self, mapping_mode):
         """
         this generator will iterate along all the plate positions, taking into account missing plates and pool_number
-        supported modes:
+        supported mapping_modes:
             'elution',
             'pcr_quadrant',
             'pcr_interleave'
         """
-        if mode == "elution":
+        if mapping_mode == "elution":
             #assign barcodes to elution plates
             for plate_bc in self.plate_carrier.barcodes:
                 if plate_bc!="":
@@ -67,19 +67,20 @@ class records_file(object):
                         for number in range(1,13):
                             for letter in "abcdefgh":
                                 yield (plate_bc,pool_itr,letter+str(number))
-        elif mode == "pcr_quadrant":
+        elif mapping_mode == "pcr_quadrant":
+            print("quadrant")
             #assign barcodes to one big barcode plate, assigning in quadrants
             #starting in top left and rotating clockwise
             letters_lst = ["abcdefgh","ijklmnop"]
             x_plate_offsets = [0,12]
             for i in range(4):
-                x_off = i%2
-                for letters in letters_lst[i//2]:
-                    for pool_itr in range(self.pool_num):
-                        for number in range(1+x_off,13+x_off):
-                            for letter in letters:
-                                yield (self.plate_carrier.barcodes[i],pool_itr,letter+str(number))
-        elif mode == "pcr_interleave":
+                x_off = x_plate_offsets[i%2]
+                letters = letters_lst[i//2]
+                for pool_itr in range(self.pool_num):
+                    for number in range(1+x_off,13+x_off):
+                        for letter in letters:
+                            yield (self.plate_carrier.barcodes[i],pool_itr,letter+str(number))
+        elif mapping_mode == "pcr_interleave":
             letters = "abcdefghijklmnop"
             #assign barcodes to one pcr barcode plate, but interleaving 4 plates
             for i in range(4):
@@ -90,7 +91,7 @@ class records_file(object):
                             pos = letters[2*letter_num+i//2]+str(x_off+2*number+1)
                             yield (self.plate_carrier.barcodes[i],pool_itr,pos)
         else:
-            raise Exception("Unknown type of plate mapping")
+            raise Exception(f"Unknown type of plate mapping: {mapping_mode}")
 
     def tube_rack_samples(self):
         """
@@ -101,8 +102,9 @@ class records_file(object):
             for tube_rack_bc in tube_rack.barcodes:
                 yield tube_rack_bc    
     
-    def fill_wells_output(self, pcr_plate):
-        num_plate_slots = len(list(self.plates_wells(pcr_plate)))
+    def fill_wells_output(self, mapping_mode):
+        """given a type of output, will generate output mapping as csv string """
+        num_plate_slots = len(list(self.plates_wells(mapping_mode)))
         num_samples = len(list(self.tube_rack_samples()))
         if num_plate_slots!= num_samples:
             raise Exception(f"The amount of plate wells times the"
@@ -110,15 +112,16 @@ class records_file(object):
                             f"equal the number of sample entries({num_samples})")
 
         output = "PLATE_BARCODE,POOL_ITR,PLATE_POS,SAMPLE_BARCODE\n"
-        for plate_info,sample_bc in zip(self.plates_wells(pcr_plate),self.tube_rack_samples()):
+        for plate_info,sample_bc in zip(self.plates_wells(mapping_mode),self.tube_rack_samples()):
             plate_bc,pool_itr,plate_pos = plate_info
             output += f"{plate_bc},{pool_itr},{plate_pos},{sample_bc}\n"
         return output
     def save_to_file(self,output_name):
+        """save the output to file, for all three different types of output"""
         with open(output_name + "_elution.txt","w") as f:
             f.write(records.fill_wells_output("elution"))
         with open(output_name + "_pcr_quadrant.txt","w") as f:
-            f.write(records.fill_wells_output("pcr"))
+            f.write(records.fill_wells_output("pcr_quadrant"))
         with open(output_name + "_pcr_interleave.txt","w") as f:
             f.write(records.fill_wells_output("pcr_interleave"))
         
