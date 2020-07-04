@@ -1,0 +1,104 @@
+BEGIN_RECORD 2020-07-02 19:06:25
+
+C	26	APER1234
+
+P	1	
+
+P	2	BarcodeA02
+
+P	3	BarcodeA03
+
+P	4	
+
+P	5	BarcodeA05
+
+END_RECORD  
+
+BEGIN_RECORD 2020-07-02 19:06:25
+
+C	20	P0123456
+
+P	1	
+
+P	2	BarcodeB02
+
+P	3	
+
+P	4	BarcodeB04
+
+P	5	BarcodeB05
+
+END_RECORD  
+
+BEGIN_RECORD 2020-07-02 19:06:26
+
+C	46	S0123456
+
+P	1	Barcode01
+
+P	2	Barcode02
+
+P	3	Barcode03
+
+P	4	Barcode04
+
+P	5	Barcode05
+
+P	6	Barcode06
+
+P	7	Barcode07
+
+P	8	Barcode08
+
+P	9	
+
+P	10	Barcode10
+
+P	11	Barcode11
+
+P	12	Barcode12
+
+P	13	Barcode13
+
+P	14	Barcode14
+
+P	15	Barcode15
+
+P	16	Barcode16
+
+P	17	Barcode17
+
+P	18	Barcode18
+
+P	19	Barcode19
+
+P	20	Barcode20
+
+P	21	Barcode21
+
+P	22	Barcode22
+
+P	23	Barcode23
+
+P	24	Barcode24
+
+P	25	Barcode25
+
+P	26	Barcode26
+
+P	27	Barcode27
+
+P	28	Barcode28
+
+P	29	Barcode29
+
+P	30	Barcode30
+
+P	31	Barcode31
+
+P	32	Barcode32
+
+END_RECORD  
+
+
+
