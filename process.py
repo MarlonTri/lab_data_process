@@ -1,22 +1,29 @@
 import re
 
-##Barcode formats for records
+__author__  = "Marlon Trifunovic"
+__license__ = "MIT License"
+__url__     = "https://github.com/MarlonTri/lab_data_process",
 
+
+##Example barcodes for record types
 #plate_carrier          - APER1391
 #plate_carrier_extra    - P0000000
 #tube_rack              - S0000000
-#plate                  - ??????
 
-BC_PATTERNS = [ ("plate_carrier", "APER\d{4}"),
-                ("plate_carrier_extra", "P\d{7}"),
-                ("tube_rack","S\d+")
-                           ]
+
+BC_PATTERNS = [
+    ("plate_carrier", "APER\d{4}"),
+    ("plate_carrier_extra", "P\d{7}"),
+    ("tube_rack","S\d+")
+    ]
+
 
 def read_file(file_path):
     with open(file_path,"r") as f:
         txt = f.read()
     txt_records = re.findall("BEGIN_RECORD.*?END_RECORD", txt, re.DOTALL)
     return txt_records
+
 
 class records_file(object):
     """
@@ -124,6 +131,13 @@ class records_file(object):
             f.write(records.fill_wells_output("pcr_quadrant"))
         with open(output_name + "_pcr_interleave.txt","w") as f:
             f.write(records.fill_wells_output("pcr_interleave"))
+
+    def __str__(self): 
+        s = f"Pool Number:\t{self.pool_num}\n"
+        s += f"Tube Rack Amt:\t{len(self.tube_racks)}\n"
+        s += "Plate Record:\n\t" + str(self.plate_carrier).replace("\n","\n\t")
+        s += "\nAlt Plate Record:\n\t" + str(self.plate_carrier_extra).replace("\n","\n\t") 
+        return s
         
 
 class record(object):
@@ -134,7 +148,7 @@ class record(object):
         lines = re.split("\n+",txt)
         raw_type = re.split("\W",lines[1])
         self.type_position = int(raw_type[1])
-
+        self.barcode = raw_type[2]
         self.type = ""
         for record_type,record_pattern in BC_PATTERNS:
             if re.match(record_pattern, raw_type[2]):
@@ -151,16 +165,20 @@ class record(object):
         self.barcodes = [barcode for _,_,barcode in info]
             
     def __str__(self):
-        s = f"Type:\t{self.type}\n"
-        s += f"Time:\t{self.time_stamp}\n"
+        s = f"Type:\t\t{self.type}\n"
+        s += f"Barcode: \t{self.barcode}\n"
+        s += f"Time:\t\t{self.time_stamp}\n"
         s += f"Type Pos:\t{self.type_position}\n"
         s += "Data Entries:\n"
+        s+=f"\tPos\tBarcode\n\n"
         for pos,barcode in enumerate(self.barcodes):
             s+=f"\t{pos}\t{barcode}\n"
         return s
-        
-records = records_file("test_data/input.txt",5)
-records.save_to_file("test_data/output") #no file extension needed
+
+if __name__=="__main__":
+    #example on how to save to file
+    records = records_file("test_data/input.txt",5) #pool number
+    records.save_to_file("test_data/output") #no file extension needed
 
 
                                 
